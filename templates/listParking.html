@@ -1,0 +1,74 @@
+    {% extends 'base.html' %}
+
+    {% block title %}Parking Spaces - Parking App{% endblock %}
+
+    {% block content %}
+        <!-- Begin Page Content -->
+        <div class="container-fluid">
+            <!-- Page Heading -->
+            <h1 class="h3 mb-2 text-gray-800">Lista de Espacios de Estacionamiento</h1>
+            <p class="mb-4">Información sobre espacios de estacionamiento disponibles</p>
+
+            <!-- DataTales Example -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Lista</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Número de Estacionamiento</th>
+                                    <th>Nombre</th>
+                                    <th>Locacion</th>
+                                    <th>Latitud</th>
+                                    <th>Longitud</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for space in parking_space_data %}
+                                <tr>
+                                    <td>{{ space.id }}</td>
+                                    <td>{{ space.name }}</td>
+                                    <td>{{ space.location }}</td>
+                                    <td>{{ space.latitude }}</td>
+                                    <td>{{ space.longitude }}</td>
+                                    <td style="color: {{ 'green' if space.state else 'red' }}">
+                                        {{ "Disponible" if space.state else "Ocupado" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Page navigation">
+                <ul class="custom-pagination">
+                    {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('parking_spaces', page=pagination.prev_num) }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    {% set num_pages = pagination.pages|length %}
+                    {% for page_num in range(pagination.page - 2, pagination.page + 3) %}
+                        {% if page_num >= 1 and page_num <= num_pages %}
+                            <li class="page-item{% if page_num == pagination.page %} active{% endif %}">
+                                <a class="page-link" href="{{ url_for('parking_spaces', page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('parking_spaces', page=pagination.next_num) }}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        <!-- /.container-fluid -->
+    {% endblock %}

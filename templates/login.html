@@ -36,33 +36,27 @@
                                     <div class="text-center">
                                         <h1 class="h4 text-gray-900 mb-4">Bienvenido!</h1>
                                     </div>
-                                    <form class="user">
+                                    <form method="POST">
+                                        {{ form.hidden_tag() }}  <!-- CSRF token -->
                                         <div class="form-group">
-                                            <input type="email" class="form-control form-control-user"
-                                                id="exampleInputEmail" aria-describedby="emailHelp"
-                                                placeholder="Correo electrónico...">
+                                            {{ form.username.label(class="form-control-label") }}
+                                            {{ form.username(class="form-control", placeholder="Username", required=true) }}
                                         </div>
                                         <div class="form-group">
-                                            <input type="password" class="form-control form-control-user"
-                                                id="exampleInputPassword" placeholder="Contraseña">
+                                            {{ form.password.label(class="form-control-label") }}
+                                            {{ form.password(class="form-control", placeholder="Password", required=true) }}
                                         </div>
-                                        <div class="form-group">
-                                            <div class="custom-control custom-checkbox small">
-                                                <input type="checkbox" class="custom-control-input" id="customCheck">
-                                                <label class="custom-control-label" for="customCheck">Recordarme</label>
-                                            </div>
+                                        <div class="form-group text-center">
+                                            <button type="submit" class="btn btn-primary">Login</button>
                                         </div>
-                                        <a href="index.html" class="btn btn-primary btn-user btn-block">Ingresar</a>
-                                        <hr>
-
-                                           </form>
+                                    </form>
+                                    
+                                    
                                     <hr>
                                     <div class="text-center">
                                         <a class="small" href="forgot-password.html">Olvidaste tu contraseña?</a>
                                     </div>
-                                    <div class="text-center">
-                                        <a class="small" href="register.html">Crear una cuenta</a>
-                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -81,6 +75,8 @@
 
     <!-- Custom scripts for all pages -->
     <script src="{{ url_for('static', filename='js/sb-admin-2.min.js') }}"></script>
+
+        
 </body>
 
 </html>

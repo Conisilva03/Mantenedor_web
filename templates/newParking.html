@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Agregar Espacio de Estacionamiento - Parking App{% endblock %}
+{% block content %}
+    <div class="container-fluid">
+        <h1 class="h3 mb-2 text-gray-800">Agregar Espacio de Estacionamiento</h1>
+        <form method="POST">
+            {{ form.csrf_token }}
+            <div class="form-group">
+                {{ form.name.label(class="control-label") }}
+                {{ form.name(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.location.label(class="control-label") }}
+                {{ form.location(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.description.label(class="control-label") }}
+                {{ form.description(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.latitude.label(class="control-label") }}
+                {{ form.latitude(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.longitude.label(class="control-label") }}
+                {{ form.longitude(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.state.label(class="form-check-label") }}
+                {{ form.state(class="form-check-input") }}
+            </div>
+            <button type="submit" class="btn btn-primary">Agregar</button>
+        </form>
+    </div>
+{% endblock %}
