@@ -28,7 +28,6 @@
                             <td>{{ wallet.balance }}</td>
                             <td>
                                 <a class="btn btn-primary" href="{{ url_for('wallet_detail', wallet_id=wallet.id) }}">Ver</a>
-                                <a class="btn btn-danger" data-toggle="modal" data-target="#disableWalletModal" data-wallet-id="{{ wallet.id }}">Disable</a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -38,10 +37,7 @@
         </div>
     </div>
 
-    <!-- Modal for disabling wallets -->
-    <div class="modal fade" id="disableWalletModal" tabindex="-1" role="dialog" aria-labelledby="disableWalletModalLabel" aria-hidden="true">
-        <!-- Modal content goes here as you need -->
-    </div>
+
 </div>
 
 <script>
