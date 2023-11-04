@@ -1,6 +1,6 @@
     {% extends 'base.html' %}
 
-    {% block title %}Parking Spaces - Parking App{% endblock %}
+    {% block title %}Estacionamientos - Parking App{% endblock %}
 
     {% block content %}
         <!-- Begin Page Content -->
@@ -11,35 +11,38 @@
 
             <!-- DataTales Example -->
             <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Lista</h6>
-                </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
-                                    <th>Número de Estacionamiento</th>
                                     <th>Nombre</th>
                                     <th>Locacion</th>
                                     <th>Latitud</th>
                                     <th>Longitud</th>
                                     <th>Estado</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for space in parking_space_data %}
                                 <tr>
-                                    <td>{{ space.id }}</td>
+                                    
                                     <td>{{ space.name }}</td>
                                     <td>{{ space.location }}</td>
                                     <td>{{ space.latitude }}</td>
                                     <td>{{ space.longitude }}</td>
                                     <td style="color: {{ 'green' if space.state else 'red' }}">
                                         {{ "Disponible" if space.state else "Ocupado" }}</td>
-                                </tr>
+                                        <td>
+                                            <a href="{{ url_for('parking_description', parking_id=space.id) }}" class="btn btn-secondary">
+                                                <i class="fas fa-info-circle"></i> Ver Estacionamiento
+                                            </a>
+                                        </td>
+                                                                        </tr>
                                 {% endfor %}
                             </tbody>
+
                         </table>
                         
                     </div>
@@ -51,7 +54,7 @@
                 <ul class="custom-pagination">
                     {% if pagination.has_prev %}
                     <li class="page-item">
-                        <a class="page-link" href="{{ url_for('parking_spaces', page=pagination.prev_num) }}">Previous</a>
+                        <a class="page-link" href="{{ url_for('parking_spaces', page=pagination.prev_num) }}">Anterior</a>
                     </li>
                     {% endif %}
                     {% set num_pages = pagination.pages|length %}
@@ -64,7 +67,7 @@
                     {% endfor %}
                     {% if pagination.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="{{ url_for('parking_spaces', page=pagination.next_num) }}">Next</a>
+                        <a class="page-link" href="{{ url_for('parking_spaces', page=pagination.next_num) }}">Siguiente</a>
                     </li>
                     {% endif %}
                 </ul>

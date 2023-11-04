@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalles de Billetera - Parking App{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-2 text-gray-800">Detalles de Billetera</h1>
+    <h5 class="mb-4">Detalles de billetera: {{ wallet.id }}</h5>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">Detalle de Billetera</div>
+        <div class="card-body">
+            <p><strong>ID Billetera:</strong> {{ wallet.id }}</p>
+            <p><strong>ID Usuario:</strong> {{ wallet.user_id }}</p>
+            <p><strong>Balance:</strong> {{ wallet.balance }}</p>
+
+            <div>
+                <a href="#" class="btn btn-primary">Editar</a>
+                <a href="#" class="btn btn-danger" data-toggle="modal" data-target="#disableWalletModal" data-wallet-id="{{ wallet.id }}">Desabilitar</a>
+                <a href="#" class="btn btn-info">Custom Action</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for disabling wallets -->
+    <div class="modal fade" id="disableWalletModal" tabindex="-1" role="dialog" aria-labelledby="disableWalletModalLabel" aria-hidden="true">
+        <!-- Modal content goes here as you need -->
+    </div>
+</div>
+{% endblock %}

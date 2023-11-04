@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}List of Wallets - Parking App{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-2 text-gray-800">Lista de Billeteras</h1>
+    <p class="mb-4">Informacion sobre billeteras registradas.</p>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header py-3"></div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="walletTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>ID Billetera</th>
+                            <th>ID Usuario</th>
+                            <th>Balance</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for wallet in wallets %}
+                        <tr>
+                            <td>{{ wallet.id }}</td>
+                            <td>{{ wallet.user_id }}</td>
+                            <td>{{ wallet.balance }}</td>
+                            <td>
+                                <a class="btn btn-primary" href="{{ url_for('wallet_detail', wallet_id=wallet.id) }}">Ver</a>
+                                <a class="btn btn-danger" data-toggle="modal" data-target="#disableWalletModal" data-wallet-id="{{ wallet.id }}">Disable</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for disabling wallets -->
+    <div class="modal fade" id="disableWalletModal" tabindex="-1" role="dialog" aria-labelledby="disableWalletModalLabel" aria-hidden="true">
+        <!-- Modal content goes here as you need -->
+    </div>
+</div>
+
+<script>
+    document.getElementById('confirmDisableWallet').addEventListener('click', function () {
+        var walletId = document.querySelector('#disableWalletModal').getAttribute('data-wallet-id');
+        // Implement AJAX request and modal handling here
+    });
+</script>
+{% endblock %}

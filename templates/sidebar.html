@@ -64,10 +64,8 @@
         </a>
         <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <h6 class="collapse-header">Inicio:</h6>
-                <a class="collapse-item" href="login.html">Ingresar</a>
-                <a class="collapse-item" href="register.html">Registrarse</a>
-                <a class="collapse-item" href="forgot-password.html">Olvidó su contraseña</a>
+                <h6 class="collapse-header">Ocupacion:</h6>
+                <a class="collapse-item" href="{{ url_for('map') }}">Ver Mapa</a>
                 <div class="collapse-divider"></div>
             </div>
         </div>
@@ -78,6 +76,13 @@
         <a class="nav-link" href="charts.html">
             <i class="fas fa-fw fa-chart-area"></i>
             <span>Gráficos</span></a>
+    </li>
+
+    <!-- Nav Item - Charts -->
+    <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('list_wallets') }}">
+            <i class="fas fa-fw fa-table    "></i>
+            <span>Gestion de Billetera</span></a>
     </li>
 
     <!-- Nav Item - Tables -->

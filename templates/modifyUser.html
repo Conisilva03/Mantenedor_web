@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit User - Parking App{% endblock %}
+
+{% block content %}
+<!-- Begin Page Content -->
+<div class="container-fluid">
+    <h1 class="h3 mb-2 text-gray-800">Edit User</h1>
+
+    <form method="POST" action="{{ url_for('update_user', user_id=user.id) }}">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+        </div>
+        <!-- Add fields for other user information you want to edit -->
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+</div>
+<!-- /.container-fluid -->
+{% endblock %}

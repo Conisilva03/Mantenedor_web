@@ -13,7 +13,6 @@
                     <!-- DataTales Example -->
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Lista</h6>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
@@ -35,15 +34,35 @@
                                             <td>{{ user.last_connection }}</td>
                                             <td>{{ user.created_date }}</td>
                                             <td>
-                                                <a  class="btn btn-primary">Edit</a>
-                                                <a  class="btn btn-danger">Delete</a>
+                                                <a  class="btn btn-primary">Editar</a>
+                                                <a class="btn btn-danger" data-toggle="modal" data-target="#disableUserModal" data-user-id="{{ user.id }}">Desabilitar</a>
                                             </td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
                                 
-                    
+                    <!-- Modal for disabling users -->
+<div class="modal fade" id="disableUserModal" tabindex="-1" role="dialog" aria-labelledby="disableUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="disableUserModalLabel">Confirmar Desabilitar Usuario</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Esta seguro que desea Desabilitar este usuario?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <a href="#" id="confirmDisable" class="btn btn-danger">Confirmar</a>
+            </div>
+        </div>
+    </div>
+</div>
+
                             </div>
                         </div>
                     </div>
@@ -76,5 +95,20 @@
 
                 </div>
                 <!-- /.container-fluid -->
+                <script>
+                    // Add an event listener for the "Confirm" button click
+                    document.getElementById('confirmDisable').addEventListener('click', function () {
+                        // Get the user ID from the button's data attribute
+                        var userId = document.querySelector('#disableUserModal').getAttribute('data-user-id');
+                
+                        // Send an AJAX request to disable the user
+                        // You should implement this part based on your backend API
+                        // For example, you can use fetch or jQuery.ajax to send the request
+                
+                        // Close the modal
+                        $('#disableUserModal').modal('hide');
+                    });
+                </script>
+                
 
 {% endblock %}

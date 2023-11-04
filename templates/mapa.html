@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Parking App{% endblock %}
+
+{% block content %}
+<!-- Begin Page Content -->
+<div class="container-fluid">
+    <div id="map" style="height: 400px;"></div>
+    <div id="marker-info">
+        <style>
+            /* Custom CSS styles for the marker info box */
+            #marker-info {
+                background-color: #fff;
+                border: 1px solid #ddd;
+                padding: 10px;
+                border-radius: 5px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+                max-width: 300px;
+                font-size: 16px;
+            }
+
+            #marker-info strong {
+                font-size: 20px;
+                color: #333; /* Change color as needed */
+            }
+
+            #marker-info p {
+                margin: 5px 0;
+            }
+
+            #marker-info .available {
+                color: green; /* Change color for available state */
+            }
+
+            #marker-info .not-available {
+                color: red; /* Change color for not available state */
+            }
+        </style>
+    </div>
+</div>
+<script>
+    var map = L.map('map').setView([-36.714658, -73.114729], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+    }).addTo(map);
+
+    var parkingSpaces = {{ parking_spaces | tojson | safe }};
+
+    for (var i = 0; i < parkingSpaces.length; i++) {
+        var parkingSpace = parkingSpaces[i];
+        var marker = L.marker([parkingSpace.latitude, parkingSpace.longitude])
+            .addTo(map)
+            .bindPopup(`<strong>${parkingSpace.name}</strong>`)
+            .on('click', function(e) {
+                // Get the clicked marker's data
+                var clickedMarkerData = e.target.options.data;
+
+                // Generate the dynamic content
+                var content = `
+                    <strong>${clickedMarkerData.name}</strong>
+                    <p>Descripcion: ${clickedMarkerData.description}</p>
+                    <p>Locacion: ${clickedMarkerData.coordinates}</p>
+                    <p>Estado: ${clickedMarkerData.state ? "Disponible" : "Ocupado"}</p>
+                `;
+
+                // Update the marker-info div with the content
+                document.getElementById('marker-info').innerHTML = content;
+            });
+
+        // Attach data to the marker
+        marker.options.data = parkingSpace;
+
+        // Customize the marker based on the parking space state
+        if (parkingSpace.state) {
+            // Parking space is available (true)
+            marker.setIcon(L.icon({
+                iconUrl: '{{ url_for("static", filename="img/marcador-de-posicion.png") }}',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+            }));
+        } else {
+            // Parking space is not available (false)
+            marker.setIcon(L.icon({
+                iconUrl: '{{ url_for("static", filename="img/parkingico.png") }}',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+            }));
+        }
+    }
+</script>
+
+<!-- /.container-fluid -->
+{% endblock %}

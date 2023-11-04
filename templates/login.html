@@ -40,15 +40,22 @@
                                         {{ form.hidden_tag() }}  <!-- CSRF token -->
                                         <div class="form-group">
                                             {{ form.username.label(class="form-control-label") }}
-                                            {{ form.username(class="form-control", placeholder="Username", required=true) }}
+                                            {{ form.username(class="form-control", placeholder="Nombre de Usuario", required=true) }}
                                         </div>
                                         <div class="form-group">
                                             {{ form.password.label(class="form-control-label") }}
-                                            {{ form.password(class="form-control", placeholder="Password", required=true) }}
+                                            {{ form.password(class="form-control", placeholder="Contrasena", required=true) }}
                                         </div>
                                         <div class="form-group text-center">
-                                            <button type="submit" class="btn btn-primary">Login</button>
+                                            <button type="submit" class="btn btn-primary">Iniciar Sesion</button>
                                         </div>
+                                        
+                                        {% if error_message %}
+                                        <div class="alert alert-danger">
+                                            {{ error_message }}
+                                        </div>
+                                        {% endif %}
+                                        
                                     </form>
                                     
                                     
