@@ -206,50 +206,51 @@ def wallet_detail(wallet_id):
 def login():
     form = LoginForm()
     error_message = None 
+
     if request.method == 'POST':
         if form.validate_on_submit():
             # Get the form data
             username = request.form['username']
             password = request.form['password']
-    
-            # Perform form validation (add more validation as needed)
-            if not username or not password:
-                print('Username and password are required.', 'error')
-                return render_template('login.html',form=form)
-    
-            # Prepare the data for the POST request
-            data = {
-                'username': username,
-                'password': password
-            }
-    
-            # Make the POST request to the API
-            api_url = f'{API_DATA}/login-admin'
-            response = requests.post(api_url, data=data, headers={'Content-Type': 'application/x-www-form-urlencoded'})
-            
-            if response.status_code == 200:
-                # Parse the JSON response content
-                try:
-                    response_data = response.json()
-                    access_token = response_data.get('access_token')
-                    token_type = response_data.get('token_type')
-                    # Set the session cookie
-                    session['jwt_token'] = access_token
-    
-    
-                    # Redirect to the dashboard
-                    flash('Login successful!', 'success')
 
-                    print('Login successful!', 'success')
-                    return redirect('/')
-                except ValueError:
-                    print('Invalid JSON response from the API.', 'error')
-                    return render_template('login.html',form=form)
+            # Perform additional form validation (if needed)
+            if not username or not password:
+                error_message = 'Username and password are required.'
             else:
-                error_message = 'Inicio de Sesion Fallido. Credentiales Invalidas.'
+                # Prepare the data for the POST request
+                data = {
+                    'username': username,
+                    'password': password
+                }
+
+                # Make the POST request to the API
+                api_url = f'{API_DATA}/login-admin'
+                response = requests.post(api_url, data=data, headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
+                if response.status_code == 200:
+                    try:
+                        # Parse the JSON response content
+                        response_data = response.json()
+                        access_token = response_data.get('access_token')
+                        token_type = response_data.get('token_type')
+
+                        # Set the session cookie
+                        session['jwt_token'] = access_token
+
+                        # Redirect to the dashboard
+                        flash('Login successful!', 'success')
+                        return redirect('/')
+                    except ValueError:
+                        error_message = 'Invalid JSON response from the API.'
+                else:
+                    error_message = 'Inicio de Sesión Fallido. Credenciales Inválidas.'
+
+        # If form validation failed, display the error message
+        if error_message:
+            flash(error_message, 'error')
 
     # If it's a GET request or if login fails, render the login form
-    return render_template('login.html',form=form,error_message=error_message)
+    return render_template('login.html', form=form, error_message=error_message)
 
 @app.route('/logout')
 def logout():
