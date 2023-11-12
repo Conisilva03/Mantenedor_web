@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash, Response
+from reportlab.pdfgen import canvas
+import io
 from flask_cors import CORS
 import requests
 import jwt
@@ -10,6 +12,8 @@ from flask_wtf.csrf import CSRFProtect
 from forms import ParkingSpaceForm, LoginForm
 import json
 from flask import flash, get_flashed_messages
+from reportlab.lib.pagesizes import letter
+
 
 
 app = Flask(__name__)
@@ -264,6 +268,8 @@ def logout():
 PER_PAGE = 10
 
 
+
+
 @app.route('/usuarios')
 @protected_route
 def user_list():
@@ -272,7 +278,6 @@ def user_list():
     
     access_token = session.get('jwt_token')
     user_id = get_user_id_from_session_cookie()
-    print(access_token)
     
     user_data = fetch_user_data(access_token)
     c_user_data = fetch_current_user_data(access_token, user_id)
@@ -300,6 +305,34 @@ def fetch_parking_space(access_token, parking_space_id):
 
     return parking_space
 
+
+
+@app.route('/activate_user/<int:user_id>', methods=['PUT'])
+@protected_route
+def activate_user(user_id):
+    access_token = session.get('jwt_token')
+    api_url = f'https://api2.parkingtalcahuano.cl/users/{user_id}/activate'
+
+    # Get the desired is_active status from the request data
+
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
+
+    # Prepare the data for the PUT request
+    data = {
+        'is_active': False
+    }
+
+    response = requests.put(api_url, json=data, headers=headers)
+
+    if response.status_code == 200:
+        flash(f'Successfully {"activated" if is_active else "deactivated"} user {user_id}.', 'success')
+    else:
+        flash('Failed to activate/deactivate user.', 'error')
+
+    return redirect(url_for('user_list'))
 
 def post_parking_space( name, location,description, latitude, longitude, state):
     access_token = session.get('jwt_token')
@@ -445,12 +478,7 @@ def map():
     return render_template('mapa.html', parking_spaces=parking_spaces)
 
 
-# Assuming you have a list of reports (you should replace this with your actual data)
-reports = [
-    {'id': 1, 'name': 'Report 1', 'description': 'First report description.'},
-    {'id': 2, 'name': 'Report 2', 'description': 'Second report description.'},
-    # Add more reports here
-]
+
 
 # Function to paginate the reports
 def get_reports_page(page, per_page):
@@ -459,6 +487,136 @@ def get_reports_page(page, per_page):
     paginated_reports = reports[start_idx:end_idx]
     return paginated_reports
 
+@app.route('/generate_pdf_report')
+def generate_pdf_report():
+    # Replace this with your actual API endpoint and headers
+    api_endpoint = 'https://api2.parkingtalcahuano.cl/users/'
+    headers = {'accept': 'application/json'}
+
+    # Make the API request
+    response = requests.get(api_endpoint, headers=headers)
+    users_data = response.json()
+
+    # Create a PDF buffer
+    pdf_buffer = io.BytesIO()
+
+    # Use reportlab to generate the PDF report
+    p = canvas.Canvas(pdf_buffer, pagesize=letter)
+
+    # Set up styles
+    styles = {
+        'Title': ('Helvetica', 14),
+        'Subtitle': ('Helvetica', 12),
+        'Normal': ('Helvetica', 8),  # Reduced font size
+    }
+
+    # Add a title
+    p.setFont(*styles['Title'])
+    p.drawString(100, 750, 'Informe de Usuarios')
+
+    # Add a subtitle
+    p.setFont(*styles['Subtitle'])
+    p.drawString(100, 730, 'Detalles de Usuarios')
+
+    # Create a table header
+    table_header = ['ID Usuario', 'Nombre de Usuario', 'Correo Electrónico', 'Fecha de Última Conexión', 'Fecha de Creación', 'Rol', '¿Activo?']
+    col_widths = [40, 80, 80, 100, 100, 40, 40]  # Reduced column widths
+    row_height = 15  # Reduced row height
+    y_position = 700
+
+    # Draw the table header
+    p.setFont(*styles['Normal'])
+    for col, header in enumerate(table_header):
+        p.drawString(100 + sum(col_widths[:col]), y_position, header)
+
+    # Draw the table content
+    y_position -= row_height
+    for user in users_data:
+        for col, key in enumerate(['id', 'username', 'email', 'last_connection', 'created_date', 'role', 'is_active']):
+            value = str(user[key])
+            
+            # Special handling for 'is_active' column
+            if key == 'is_active':
+                value = 'Si' if user[key] else 'No'
+            p.drawString(100 + sum(col_widths[:col]), y_position, value)
+
+        y_position -= row_height
+
+    p.showPage()
+    p.save()
+
+    # Create a PDF response
+    pdf_buffer.seek(0)
+    pdf_response = Response(pdf_buffer.getvalue(), content_type='application/pdf')
+    pdf_response.headers['Content-Disposition'] = 'inline; filename=informe_usuarios.pdf'
+
+    return pdf_response
+
+
+@app.route('/generate_movements_report')
+def generate_movements_report():
+    api_endpoint = 'https://api2.parkingtalcahuano.cl/parking-movements/'
+    headers = {'accept': 'application/json'}
+
+    # Make the API request
+    response = requests.get(api_endpoint, headers=headers)
+    movements_data = response.json()
+
+    # Create a PDF buffer
+    pdf_buffer = io.BytesIO()
+
+    # Use reportlab to generate the PDF report
+    p = canvas.Canvas(pdf_buffer, pagesize=letter)
+
+    # Set up styles
+    styles = {
+        'Title': ('Helvetica', 14),
+        'Subtitle': ('Helvetica', 12),
+        'Normal': ('Helvetica', 8),  # Reduced font size
+    }
+
+    # Add a title
+    p.setFont(*styles['Title'])
+    p.drawString(100, 750, 'Informe de Movimientos de Estacionamiento')
+
+    # Add a subtitle
+    p.setFont(*styles['Subtitle'])
+    p.drawString(100, 730, 'Detalles de Movimientos')
+
+    # Create a table header
+    table_header = ['ID Movimiento', 'ID Usuario', 'Fecha y Hora de Entrada', 'Fecha y Hora de Salida', 'ID Estacionamiento', 'Costo Total', 'Notas']
+    col_widths = [40, 60, 120, 120, 80, 60, 80, 80, 120]  # Adjusted column widths
+    row_height = 15  # Reduced row height
+    y_position = 680  # Adjusted starting y_position
+
+    # Draw the table header
+    p.setFont(*styles['Normal'])
+    for col, header in enumerate(table_header):
+        p.drawString(100 + sum(col_widths[:col]), y_position, header)
+
+    # Draw the table content
+    y_position -= row_height
+    for movement in movements_data:
+        for col, key in enumerate(['id', 'user_id', 'entry_time', 'exit_time', 'parking_spot_id', 'total_cost', 'notes']):
+            value = str(movement[key])
+            
+            # Special handling for 'entry_time' and 'exit_time' columns (you might need to format it appropriately)
+            if key in ['entry_time', 'exit_time']:
+                value = value[:19]  # Assuming the date and time format is suitable for display
+            
+            p.drawString(100 + sum(col_widths[:col]), y_position, value)
+
+        y_position -= row_height
+
+    p.showPage()
+    p.save()
+
+    # Create a PDF response
+    pdf_buffer.seek(0)
+    pdf_response = Response(pdf_buffer.getvalue(), content_type='application/pdf')
+    pdf_response.headers['Content-Disposition'] = 'inline; filename=informe_movimientos.pdf'
+
+    return pdf_response
 
 @app.route('/reportes')
 def report():
@@ -496,6 +654,36 @@ def edit_user(user_id):
         return redirect(url_for('user_list'))
 
     return render_template('edit_user.html', user=user)
+
+
+
+@app.route('/edit_email/<int:user_id>', methods=['GET', 'POST'])
+def edit_email(user_id):
+
+    access_token = session.get('jwt_token')
+    user_id = get_user_id_from_session_cookie()
+    
+    users = fetch_user_data(access_token)
+
+    if request.method == 'POST':
+        # Update the user's email based on the form submission
+        new_email = request.form.get('new_email')
+        
+        if any(user['id'] == user_id for user in users):
+            users[user_id]['email'] = new_email
+            flash(f'Successfully updated email for user {user_id}.', 'success')
+            return redirect(url_for('user_list'))
+        else:
+            flash('User not found.', 'error')
+
+    # If it's a GET request or the form submission failed, render the edit page
+    if any(user['id'] == user_id for user in users):
+        return render_template('edit_email.html', user=users[user_id])
+    else:
+        flash('User not found.', 'error')
+        return redirect(url_for('user_list'))
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

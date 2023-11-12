@@ -22,24 +22,17 @@
             <tbody>
                 <tr>
                     <td>Reporte Usuarios</td>
-                    <td>First report description.</td>
-                    <td><a href="#"  class="btn btn-secondary">Generar</a></td>
+                    <td>Reporte sobre los usuarios.</td>
+                    <td><a href="{{ url_for('generate_pdf_report') }}" class="btn btn-primary">Descargar PDF</a>
+                    </td>
                 </tr>
                 <tr>
-                    <td>Reporte Ingresos</td>
-                    <td>Second report description.</td>
-                    <td><a href="#" class="btn btn-secondary">Generar</a></td>
+                    <td>Reporte Movimientos</td>
+                    <td>Reporte segun movimientos</td>
+                    <td><a href="{{ url_for('generate_movements_report') }}" class="btn btn-primary">Descargar PDF</a>
+                    </td>
                 </tr>
-                <tr>
-                    <td>Reporte Estacionamientos</td>
-                    <td>Third report description.</td>
-                    <td><a href="#" class="btn btn-secondary">Generar</a></td>
-                </tr>
-                <tr>
-                    <td>Reporte 4</td>
-                    <td>Fourth report description.</td>
-                    <td><a href="#" class="btn btn-secondary">Generar</a></td>
-                </tr>
+               
             </tbody>
         </table>
 

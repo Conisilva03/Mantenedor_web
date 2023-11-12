@@ -23,6 +23,7 @@
                                             <th>Email</th>
                                             <th>Ultima Conexion</th>
                                             <th>Fecha Registro</th>
+                                            <th>Estado</th>
                                             <th>Acciones</th> 
                                         </tr>
                                     </thead>
@@ -33,9 +34,11 @@
                                             <td>{{ user.email }}</td>
                                             <td>{{ user.last_connection }}</td>
                                             <td>{{ user.created_date }}</td>
+                                            <td>{{ 'activo' if user.is_active else 'inactivo' }}</td>
+
                                             <td>
                                                 <a  class="btn btn-primary">Editar</a>
-                                                <a class="btn btn-danger" data-toggle="modal" data-target="#disableUserModal" data-user-id="{{ user.id }}">Deshabilitar</a>
+                                                <a class="btn btn-danger" href="#" onclick="disableUser({{ user.id }})">Deshabilitar</a>
                                             </td>
                                         </tr>
                                         {% endfor %}
@@ -95,20 +98,34 @@
 
                 </div>
                 <!-- /.container-fluid -->
-                <script>
-                    // Add an event listener for the "Confirm" button click
-                    document.getElementById('confirmDisable').addEventListener('click', function () {
-                        // Get the user ID from the button's data attribute
-                        var userId = document.querySelector('#disableUserModal').getAttribute('data-user-id');
-                
-                        // Send an AJAX request to disable the user
-                        // You should implement this part based on your backend API
-                        // For example, you can use fetch or jQuery.ajax to send the request
-                
-                        // Close the modal
-                        $('#disableUserModal').modal('hide');
-                    });
-                </script>
+
+<script>
+    function disableUser(userId) {
+        // Send an AJAX request to disable the user
+        fetch(`/activate_user/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                'is_active': false,
+            }),
+        })
+        .then(response => {
+            if (response.ok) {
+                // Success: reload the page or update the UI as needed
+                location.reload();
+            } else {
+                // Error: handle the error, display a message, etc.
+                console.error('Failed to disable user.');
+            }
+        })
+        .catch(error => {
+            console.error('Error during fetch:', error);
+        });
+    }
+</script>
+
                 
 
 {% endblock %}
