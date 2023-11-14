@@ -4,13 +4,13 @@
 
 {% block content %}
     <div class="container-fluid">
-        <h1 class="h3 mb-2 text-gray-800">Edit Email</h1>
+        <h1 class="h3 mb-2 text-gray-800">Modificar Email</h1>
         <form method="put">
             <div class="form-group">
-                <label for="new_email">New Email:</label>
+                <label for="new_email">Nuevo Email:</label>
                 <input type="email" class="form-control" id="new_email" name="new_email" value="{{ user.email }}" required>
             </div>
-            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
         </form>
     </div>
 {% endblock %}

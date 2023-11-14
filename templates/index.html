@@ -104,24 +104,59 @@
                         <div class="col-xl-8 col-lg-7">
                             <div class="card shadow mb-4">
                                 <!-- Card Header - Dropdown -->
-                                <div
-                                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">Resumen de Ganancias</h6>
-                                    <div class="dropdown no-arrow">
-                                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                                            aria-labelledby="dropdownMenuLink">
-                                            <div class="dropdown-header">Dropdown Header:</div>
-                                            <a class="dropdown-item" href="#">Action</a>
-                                            <a class="dropdown-item" href="#">Another action</a>
-                                            <div class="dropdown-divider"></div>
-                                            <a class="dropdown-item" href="#">Something else here</a>
-                                        </div>
-                                    </div>
-                                </div>
+                                <!-- Assuming movement_summary is a list of movements as provided by the API -->
+<!-- Card Body -->
+<div class="card-body">
+    <h5 class="card-title">Resumen de Movimientos</h5>
+    <div class="table-responsive">
+        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User ID</th>
+                    <th>Entry Time</th>
+                    <th>Exit Time</th>
+                    <th>Parking Spot ID</th>
+                    <th>Total Cost</th>
+                    <th>Vehicle Type</th>
+                    <th>License Plate</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            
+                {% for movement in movement_summary %}
+                    <tr>
+                        <td>{{ movement.id }}</td>
+                        <td>{{ movement.user_id }}</td>
+                        <td>{{ movement.entry_time }}</td>
+                        <td>{{ movement.exit_time }}</td>
+                        <td>{{ movement.parking_spot_id }}</td>
+                        <td>{{ movement.total_cost }}</td>
+                        <td>{{ movement.vehicle_type }}</td>
+                        <td>{{ movement.license_plate }}</td>
+                        <td>{{ movement.notes }}</td>
+                    </tr>
+            
+                
+                {% endfor %}
+
+            </tbody>
+            
+        </table>
+    </div>
+
+    <!-- Display Total Costs -->
+    <div>
+            
+        <p>Total de Montos por Reserva: ${{ totals.total_reserved_cost }}</p>
+        <p>Total de Montos por Otros: ${{ totals.total_other_cost }}</p>
+        <p>Total General: ${{ totals.total_general }}</p>
+    </div>
+</div>
+
+
                                 <!-- Card Body -->
                                 <div class="card-body">
                                     <div class="chart-area">

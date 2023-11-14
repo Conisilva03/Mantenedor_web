@@ -88,7 +88,7 @@ def fetch_parking_data(access_token):
     api_url = f'{API_ESTACIONAMIENTOS}/parking_spaces/'
     
     headers = {
-        'Authorization': f'Bearer {access_token}'  # Include the JWT token in the request headers
+        'Authorization': f'Bearer {access_token}' 
     }
 
     response = requests.get(api_url, headers=headers)
@@ -100,6 +100,24 @@ def fetch_parking_data(access_token):
 
     return parking_data
 
+
+def fetch_reservas_data(access_token):
+    api_url = f'{API_DATA}/reservations'
+    
+    headers = {
+        'Authorization': f'Bearer {access_token}' 
+    }
+
+    response = requests.get(api_url, headers=headers)
+    print('Response status code:', response.status_code)
+    
+    if response.status_code == 200:
+        parking_data = response.json()
+    else:
+        print('Error:', response.text)  # Print the error message
+        parking_data = []
+
+    return parking_data
 
 @app.route('/')
 @protected_route
@@ -139,19 +157,43 @@ def dashboard():
         filtered_parking_locations_active="Error"
         filtered_parking_locations_innactive="Error"
 
+    # Obtiene resúmenes de movimientos
+    api_movements = 'https://api2.parkingtalcahuano.cl/parking-movements/'
+    movements = requests.get(api_movements, headers=headers)
+
+    if movements.status_code == 200:
+        movement_summary = movements.json()[:5]
+    else:
+        movement_summary = "Error"
+
+
+    # Cálculo de totales de movimientos
+    total_reserved_cost = sum(movement['total_cost'] for movement in movement_summary if 'Cancelacion' not in movement['notes'])
+    total_other_cost = sum(movement['total_cost'] for movement in movement_summary if 'Cancelacion'  in movement['notes'])
+    total_general = sum(movement['total_cost'] for movement in movement_summary)
+
+    # Crear un diccionario con los totales
+    totals = {
+        'total_reserved_cost': total_reserved_cost,
+        'total_other_cost': total_other_cost,
+        'total_general': total_general
+    }
+
     if response.status_code == 200:
         user_data = response.json()
-        username = user_data.get('username')  # Extract the username
-        # Now you can use the username in your template or perform any required actions
+        username = user_data.get('username')
         context_data = {
-                'access_token': access_token,
-                'token_type': token_type,
-                'current_user': username,
-                'cantidad_users': cantidad_users,
-                'filtered_parking_locations_active': filtered_parking_locations_active,
-                'filtered_parking_locations_innactive':filtered_parking_locations_innactive,
-                'parking_space_data':parking_locations,
-            }
+            'access_token': access_token,
+            'token_type': token_type,
+            'current_user': username,
+            'cantidad_users': cantidad_users,
+            'filtered_parking_locations_active': filtered_parking_locations_active,
+            'filtered_parking_locations_innactive': filtered_parking_locations_innactive,
+            'parking_space_data': parking_locations,
+            'movement_summary': movement_summary,  
+            'totals': totals ,
+        }
+        
 
         return render_template('index.html', **context_data)
 
@@ -269,6 +311,36 @@ PER_PAGE = 10
 
 
 
+@app.route('/move', methods=['GET', 'POST'])
+def move():
+    global rampa_arriba 
+    
+    if request.method == 'POST':
+        direction = request.form.get('direction')
+        # Lógica para cambiar el estado de la rampa
+        
+
+        if direction in ['backward', 'forward']:
+            # Cambia la dirección IP y el puerto según la configuración de tu ESP32
+            esp32_url = f'http://192.168.1.102/move/{direction}'
+
+            try:
+                # Envía la solicitud POST a la dirección de tu ESP32
+                response = requests.post(esp32_url)
+                if direction == 'forward':
+                    rampa_arriba = False
+                elif direction == 'backward':
+                    rampa_arriba = True
+                
+
+                # Renderiza el template con la respuesta del ESP32
+                return render_template('moveservo.html', response_text=response.text,rampa_arriba=rampa_arriba)
+            except requests.RequestException as e:
+                # Maneja cualquier error de solicitud aquí
+                return render_template('moveservo.html', response_text=f"Error: {str(e)}")
+
+    # Si la solicitud es GET o si no se especifica la dirección, simplemente renderiza la página con un mensaje predeterminado
+    return render_template('moveservo.html', response_text='Presiona uno de los botones para mover el servo')
 
 @app.route('/usuarios')
 @protected_route
@@ -282,8 +354,15 @@ def user_list():
     user_data = fetch_user_data(access_token)
     c_user_data = fetch_current_user_data(access_token, user_id)
 
-    users_on_page = user_data[offset:offset + PER_PAGE]
-    total = len(user_data)
+    # Obtener el término de búsqueda del parámetro 'search_query'
+    search_query = request.args.get('search_query', '')
+
+    # Filtrar la lista de usuarios por nombre o correo electrónico
+    filtered_users = [user for user in user_data if search_query.lower() in user['username'].lower() or search_query.lower() in user['email'].lower()]
+
+    total = len(filtered_users)
+
+    users_on_page = filtered_users[offset:offset + PER_PAGE]
 
     pagination = Pagination(page=page, total=total, per_page=PER_PAGE)
 
@@ -306,7 +385,6 @@ def fetch_parking_space(access_token, parking_space_id):
     return parking_space
 
 
-
 @app.route('/activate_user/<int:user_id>', methods=['PUT'])
 @protected_route
 def activate_user(user_id):
@@ -314,6 +392,7 @@ def activate_user(user_id):
     api_url = f'https://api2.parkingtalcahuano.cl/users/{user_id}/activate'
 
     # Get the desired is_active status from the request data
+    is_active = request.json.get('is_active', False)  # Assuming the is_active status is provided in the JSON data
 
     headers = {
         'Authorization': f'Bearer {access_token}',
@@ -322,7 +401,7 @@ def activate_user(user_id):
 
     # Prepare the data for the PUT request
     data = {
-        'is_active': False
+        'is_active': is_active
     }
 
     response = requests.put(api_url, json=data, headers=headers)
@@ -407,15 +486,59 @@ def parking_spaces():
     access_token = session.get('jwt_token')
     parking_space_data = fetch_parking_data(access_token)
 
-    # You can also implement pagination logic here
+    # Obtener el término de búsqueda del parámetro 'search_query'
+    search_query = request.args.get('search_query', '')
+
+    # Filtrar la lista de espacios de estacionamiento por nombre o ubicación
+    filtered_spaces = [space for space in parking_space_data if search_query.lower() in space['name'].lower() or search_query.lower() in space['location'].lower()]
+
 
     per_page = 10  # Number of items per page
-    total = len(parking_space_data)  # Total number of items
+    total = len(filtered_spaces)  # Total number of items
     page = request.args.get('page', type=int, default=1)  # Get the current page from the request
 
     pagination = Pagination(page=page, per_page=per_page, total=total, bs_version=4)
 
-    return render_template('listParking.html', parking_space_data=parking_space_data, pagination=pagination)
+    spaces_on_page = filtered_spaces[(page - 1) * per_page: page * per_page]
+
+
+    return render_template('listParking.html', parking_space_data=spaces_on_page, pagination=pagination)
+
+
+from datetime import datetime, date
+
+@app.route('/lista_reservas')
+@protected_route
+def reservations():
+    access_token = session.get('jwt_token')
+    parking_space_data = fetch_reservas_data(access_token)
+
+    # Obtener los valores de fecha de inicio y fecha de fin para el filtro
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    # Convertir las fechas de cadena a objetos date si se proporcionan
+    start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date() if start_date else None
+    end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date() if end_date else None
+
+    # Filtrar la lista de reservas por las fechas proporcionadas
+    filtered_reservations = parking_space_data
+
+    if start_date_obj:
+        filtered_reservations = [reservation for reservation in filtered_reservations if datetime.strptime(reservation['start_time'], '%Y-%m-%dT%H:%M:%S').date() >= start_date_obj]
+
+    if end_date_obj:
+        filtered_reservations = [reservation for reservation in filtered_reservations if datetime.strptime(reservation['end_time'], '%Y-%m-%dT%H:%M:%S').date() >= end_date_obj]
+
+    per_page = 10  # Número de elementos por página
+    total = len(filtered_reservations)  # Total de elementos
+    page = request.args.get('page', type=int, default=1)  # Obtener la página actual de la solicitud
+
+    pagination = Pagination(page=page, per_page=per_page, total=total, bs_version=4)
+
+    reservations_on_page = filtered_reservations[(page - 1) * per_page: page * per_page]
+
+    return render_template('listReservas.html', reservations_data=reservations_on_page, pagination=pagination)
 
 
 @app.route('/agregar_estacionamiento', methods=['GET', 'POST'])
@@ -452,10 +575,7 @@ def add_parking_space():
 
 @app.route('/parking/<parking_id>')
 def parking_description(parking_id):
-    # Your code to retrieve parking details by ID
-    # For example, you can fetch details from a database based on parking_id
 
-    # Replace this with your actual parking data retrieval logic
     access_token = session.get('jwt_token')
 
     space = fetch_parking_space(access_token,parking_id)
@@ -480,12 +600,7 @@ def map():
 
 
 
-# Function to paginate the reports
-def get_reports_page(page, per_page):
-    start_idx = (page - 1) * per_page
-    end_idx = start_idx + per_page
-    paginated_reports = reports[start_idx:end_idx]
-    return paginated_reports
+
 
 @app.route('/generate_pdf_report')
 def generate_pdf_report():
@@ -620,25 +735,23 @@ def generate_movements_report():
 
 @app.route('/reportes')
 def report():
-    per_page = 10  # Number of items per page
-    page = request.args.get('page', type=int, default=1)  # Get the current page from the request
-
-    total = len(reports)  # Total number of items (reports)
-
-    # Calculate the starting and ending indices for the current page
-    start_idx = (page - 1) * per_page
-    end_idx = min(start_idx + per_page, total)
-
-    paginated_reports = reports
-
-    pagination = Pagination(page=page, per_page=per_page, total=total, record_name='reports')
-
-    return render_template('informes.html', pagination=pagination, page=page, per_page=per_page, reports=paginated_reports)
+    
+    return render_template('informes.html')
 
 
 
 @app.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
 def edit_user(user_id):
+
+    user_id=get_user_id_from_session_cookie()
+    api_url = f'{API_DATA}/users/{user_id}'
+    
+    headers = {
+        'Authorization': f'Bearer {access_token}'  # Include the JWT token in the request headers
+    }
+
+    response = requests.get(api_url, headers=headers)
+
     # Retrieve the user from your API or database based on the user_id
     user = get_user_by_id(user_id)  # Implement 'get_user_by_id' to fetch the user
 
@@ -655,35 +768,33 @@ def edit_user(user_id):
 
     return render_template('edit_user.html', user=user)
 
-
-
-@app.route('/edit_email/<int:user_id>', methods=['GET', 'POST'])
+@app.route('/edit_email/<int:user_id>', methods=['GET', 'PUT'])
 def edit_email(user_id):
-
     access_token = session.get('jwt_token')
-    user_id = get_user_id_from_session_cookie()
-    
     users = fetch_user_data(access_token)
 
-    if request.method == 'POST':
+    if request.method == 'PUT':
         # Update the user's email based on the form submission
         new_email = request.form.get('new_email')
         
-        if any(user['id'] == user_id for user in users):
-            users[user_id]['email'] = new_email
+        # Find the user by ID and update the email
+        user_to_update = next((user for user in users if user['id'] == user_id), None)
+        
+        if user_to_update:
+            user_to_update['email'] = new_email
             flash(f'Successfully updated email for user {user_id}.', 'success')
             return redirect(url_for('user_list'))
         else:
             flash('User not found.', 'error')
 
     # If it's a GET request or the form submission failed, render the edit page
-    if any(user['id'] == user_id for user in users):
-        return render_template('edit_email.html', user=users[user_id])
+    user = next((user for user in users if user['id'] == user_id), None)
+    if user:
+        return render_template('edit_email.html', user=user)
     else:
         flash('User not found.', 'error')
         return redirect(url_for('user_list'))
-
-
-
+    
+    
 if __name__ == '__main__':
     app.run(debug=True)

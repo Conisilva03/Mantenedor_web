@@ -5,9 +5,18 @@
     {% block content %}
         <!-- Begin Page Content -->
         <div class="container-fluid">
+
+
             <!-- Page Heading -->
             <h1 class="h3 mb-2 text-gray-800">Lista de Espacios de Estacionamiento</h1>
             <p class="mb-4">Información sobre espacios de estacionamiento disponibles</p>
+
+
+            <!-- Agregar un formulario de búsqueda -->
+<form action="/lista_estacionamientos" method="get" class='py-3'>
+    <input type="text" name="search_query" placeholder="Buscar por nombre o ubicación">
+    <button type="submit" clas='btn-primary'>Buscar</button>
+</form>
 
             <!-- DataTales Example -->
             <div class="card shadow mb-4">
@@ -37,6 +46,9 @@
                                         <td>
                                             <a href="{{ url_for('parking_description', parking_id=space.id) }}" class="btn btn-secondary">
                                                 <i class="fas fa-info-circle"></i> Ver Estacionamiento
+                                            </a>
+                                            <a href="{{ url_for('move') }}" class="btn btn-secondary">
+                                                <i class="fas fa-info-circle"></i> Gestionar Manual
                                             </a>
                                         </td>
                                                                         </tr>

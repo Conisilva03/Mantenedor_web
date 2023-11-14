@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Control Manual de Rampa{% endblock %}
+
+{% block content %}
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+        <!-- Page Heading -->
+        <h1 class="h3 mb-4 text-gray-800 text-center">Control Manual Rampa de Estacionamiento</h1>
+
+        <!-- Show status message -->
+        <div class="mt-4 text-center">
+            {% if rampa_arriba %}
+                <h3>La rampa está arriba.</h3>
+            {% else %}
+                <h3>La rampa está abajo.</h3>
+            {% endif %}
+        </div>
+
+        <!-- Your Form -->
+        <form method="post" action="/move" class="text-center">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="btn-group" role="group" aria-label="Movement Buttons">
+                <button type="submit" name="direction" value="backward" class="btn btn-success btn-lg mx-2">Levantar</button>
+                <button type="submit" name="direction" value="forward" class="btn btn-danger btn-lg mx-2">Bajar</button>
+            </div>
+        </form>
+
+        
+    </div>
+    <!-- /.container-fluid -->
+{% endblock %}
